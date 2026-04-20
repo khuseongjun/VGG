@@ -3,9 +3,8 @@ import torch.nn as nn
 import torch.optim as optim
 import time
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-def train_and_eval(model, trainloader, testloader, epochs=5):
+def train_and_eval(model, trainloader, testloader, device, epochs=5):
+    print("[Step3] Training model...")
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()
@@ -14,6 +13,8 @@ def train_and_eval(model, trainloader, testloader, epochs=5):
     start = time.time()
 
     for epoch in range(epochs):
+        print(f"- Train: Epoch {epoch+1}/{epochs} started", flush=True)
+        
         model.train()
         for inputs, labels in trainloader:
             inputs, labels = inputs.to(device), labels.to(device)
@@ -25,6 +26,8 @@ def train_and_eval(model, trainloader, testloader, epochs=5):
             optimizer.step()
 
     end = time.time()
+
+    print("- Eval: Starting evaluation...")
 
     model.eval()
     correct = 0
@@ -42,5 +45,8 @@ def train_and_eval(model, trainloader, testloader, epochs=5):
 
     acc = 100 * correct / total
     train_time = end - start
+
+    print(f"Accuracy: {acc:.2f}%")
+    print(f"Training time: {train_time:.2f}s")
 
     return acc, train_time
