@@ -3,13 +3,17 @@ import torch.nn as nn
 import torch.optim as optim
 import time
 
-def train_and_eval(model, trainloader, testloader, device, epochs=5):
-    print("[Step3] Training model...")
+def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
+    print("[Step2] Training model...")
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode='min', factor=0.3, patience=2, min_lr=1e-6
+    )
+    
     start = time.time()
 
     for epoch in range(epochs):
@@ -25,9 +29,25 @@ def train_and_eval(model, trainloader, testloader, device, epochs=5):
             loss.backward()
             optimizer.step()
 
+        model.eval()
+        val_loss = 0
+
+        with torch.no_grad():
+            for inputs, labels in valloader:
+                inputs, labels = inputs.to(device), labels.to(device)
+
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
+                val_loss += loss.item()
+
+        val_loss /= len(valloader)
+        print(f"  → Validation Loss: {val_loss:.4f}")
+
+        scheduler.step(val_loss)
+
     end = time.time()
 
-    print("- Eval: Starting evaluation...")
+    print("[Step3] Starting evaluation...")
 
     model.eval()
     correct = 0

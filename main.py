@@ -7,7 +7,7 @@ import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("[DEVICE]", device)
 
-trainloader, testloader = get_dataloader()
+trainloader, valloader, testloader = get_dataloader()
 
 channel_configs = [
     [32, 64, 128, 256, 512],
@@ -19,21 +19,23 @@ pool_strides = [1, 2]
 
 results = []
 
-for idx, ch in enumerate(channel_configs):
+run_id = 1
+for ch in channel_configs:
     for ps in pool_strides:
-
         print("\n" + "=" * 60)
-        print(f"[RUN {idx+1}] channels={ch}, stride={ps}")
+        print(f"[RUN {run_id}] channels={ch}, stride={ps}")
         print("=" * 60)
-
-        print("[STEP 2] Creating model...")
+        
+        run_id += 1
+        
+        print("[STEP 1] Creating model...")
         model = VGG(channels=ch, pool_stride=ps)
         model = model.to(device)
 
         params = sum(p.numel() for p in model.parameters())
         print(f"Params: {params}")
 
-        acc, t = train_and_eval(model, trainloader, testloader, device, 20)
+        acc, t = train_and_eval(model, trainloader, valloader, testloader, device, 20)
 
         results.append({
             "channels": str(ch),
