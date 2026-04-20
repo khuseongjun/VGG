@@ -47,8 +47,6 @@ def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
         val_loss /= len(valloader)
         print(f"  → Validation Loss: {val_loss:.4f}")
 
-        scheduler.step(val_loss)
-
     end = time.time()
 
     print("[Step3] Starting evaluation...")
