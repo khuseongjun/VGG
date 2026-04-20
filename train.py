@@ -10,8 +10,11 @@ def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='min', factor=0.3, patience=2, min_lr=1e-6
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(
+        optimizer,
+        max_lr=0.01,
+        steps_per_epoch=len(trainloader),
+        epochs=epochs
     )
     
     start = time.time()
@@ -28,6 +31,7 @@ def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
+            scheduler.step()
 
         model.eval()
         val_loss = 0
