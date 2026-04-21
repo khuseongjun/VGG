@@ -4,7 +4,6 @@ import torch.optim as optim
 import time
 
 def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
-    print("[Step2] Training model...")
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()
@@ -16,13 +15,12 @@ def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
         steps_per_epoch=len(trainloader),
         epochs=epochs
     )
-    
+
     start = time.time()
 
     for epoch in range(epochs):
-        print(f"- Train: Epoch {epoch+1}/{epochs} started", flush=True)
-        
         model.train()
+
         for inputs, labels in trainloader:
             inputs, labels = inputs.to(device), labels.to(device)
 
@@ -34,6 +32,8 @@ def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
             scheduler.step()
 
         model.eval()
+        correct = 0
+        total = 0
         val_loss = 0
 
         with torch.no_grad():
@@ -44,12 +44,15 @@ def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
                 loss = criterion(outputs, labels)
                 val_loss += loss.item()
 
+                _, predicted = torch.max(outputs, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+
+        val_acc = 100 * correct / total
         val_loss /= len(valloader)
-        print(f"  → Validation Loss: {val_loss:.4f}")
+        print(f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.2f}%")
 
     end = time.time()
-
-    print("[Step3] Starting evaluation...")
 
     model.eval()
     correct = 0
@@ -68,7 +71,7 @@ def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
     acc = 100 * correct / total
     train_time = end - start
 
-    print(f"Accuracy: {acc:.2f}%")
-    print(f"Training time: {train_time:.2f}s")
+    print(f"Test Accuracy: {acc:.2f}%")
+    print(f"Training Time: {train_time:.2f}s")
 
     return acc, train_time
