@@ -63,6 +63,6 @@ for ch in channel_configs:
         })
 
 df = pd.DataFrame(results)
-df.to_csv("results.csv", index=False)
+df.to_csv("channels_stride.csv", index=False)
 
 print("===== ALL DONE =====")

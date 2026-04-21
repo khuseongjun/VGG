@@ -3,11 +3,11 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Subset
 
-def get_dataloader(batch_size=128):
+def get_dataloader(batch_size=128, crop_size=32):
     print("Loading dataset...")
 
     transform_train = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
+        transforms.RandomCrop(size=crop_size, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(
