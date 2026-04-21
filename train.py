@@ -19,6 +19,7 @@ def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
     start = time.time()
 
     for epoch in range(epochs):
+        print(f"- epoch: {epoch}/{epochs}")
         model.train()
 
         for inputs, labels in trainloader:
@@ -54,6 +55,7 @@ def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
 
     end = time.time()
 
+    print("- Eval")
     model.eval()
     correct = 0
     total = 0
