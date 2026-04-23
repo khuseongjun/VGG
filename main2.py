@@ -21,7 +21,7 @@ channels_config = [64, 128, 256, 512, 512]
 stride_config = 2
 
 crop_configs = [
-    20, 24, 28, 32, 26
+    20, 24, 28, 32, 36
 ]
 
 results = []

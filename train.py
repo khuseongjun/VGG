@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import time
+import numpy as np
 
 def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
     model.to(device)
@@ -26,8 +27,16 @@ def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
             inputs, labels = inputs.to(device), labels.to(device)
 
             optimizer.zero_grad()
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
+
+            if np.random.rand() < 0.5:
+                inputs, targets_a, targets_b, lam = cutmix_data(inputs, labels)
+
+                outputs = model(inputs)
+                loss = lam * criterion(outputs, targets_a) + (1 - lam) * criterion(outputs, targets_b)
+            else:
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
+            
             loss.backward()
             optimizer.step()
             scheduler.step()
@@ -77,3 +86,28 @@ def train_and_eval(model, trainloader, valloader, testloader, device, epochs=5):
     print(f"Training Time: {train_time:.2f}s")
 
     return acc, train_time
+
+def cutmix_data(x, y, alpha=1.0):
+    lam = np.random.beta(alpha, alpha)
+    batch_size = x.size(0)
+    index = torch.randperm(batch_size).to(x.device)
+
+    _, _, H, W = x.size()
+
+    cut_rat = np.sqrt(1. - lam)
+    cut_w = int(W * cut_rat)
+    cut_h = int(H * cut_rat)
+
+    cx = np.random.randint(W)
+    cy = np.random.randint(H)
+
+    x1 = np.clip(cx - cut_w // 2, 0, W)
+    x2 = np.clip(cx + cut_w // 2, 0, W)
+    y1 = np.clip(cy - cut_h // 2, 0, H)
+    y2 = np.clip(cy + cut_h // 2, 0, H)
+
+    x[:, :, y1:y2, x1:x2] = x[index, :, y1:y2, x1:x2]
+
+    lam = 1 - ((x2 - x1) * (y2 - y1) / (W * H))
+
+    return x, y, y[index], lam
